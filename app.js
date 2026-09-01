@@ -604,7 +604,7 @@ async function renderAdminAppointments() {
                 actions.push(`<button class="tiny go approve" data-id="${a.id}">Aprovar</button>`);
                 actions.push(`<button class="tiny danger refuse" data-id="${a.id}">Recusar</button>`);
             } else if (a.status === 'aguardando-sinal') {
-                actions.push(`<a class="tiny wa" target="_blank" rel="noopener" href="${waLink(a.telefone, `Oi ${a.nome}! Sua reserva de ${a.servico} em ${br(a.data)} às ${a.horario} foi aprovada ✨ Para confirmar, o sinal é de R$ 30. Pode me avisar por aqui quando fizer o pagamento?`)}">💬 Cobrar sinal</a>`);
+                actions.push(`<a class="tiny wa" target="_blank" rel="noopener" href="${waLink(a.telefone, `Oi ${a.nome}! Sua reserva de ${a.servico} em ${br(a.data)} às ${a.horario} foi aprovada! Para confirmar, o valor será de R$ 30. Pode me avisar por aqui quando fizer o pagamento?`)}">💬 Cobrar sinal</a>`);
                 actions.push(`<button class="tiny go deposit" data-id="${a.id}">Sinal recebido</button>`);
                 actions.push(`<button class="tiny danger refuse" data-id="${a.id}">Recusar</button>`);
             } else if (a.status === 'confirmado') {
