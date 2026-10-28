@@ -76,7 +76,8 @@ async function isSlotClosed(data, horario){
 
 const GALLERY_FALLBACK = [
   'assets/gallery/01.jpg','assets/gallery/02.jpg','assets/gallery/03.jpg',
-  'assets/gallery/04.jpg','assets/gallery/05.jpg','assets/gallery/06.jpg'
+  'assets/gallery/04.jpg','assets/gallery/05.jpg','assets/gallery/06.jpg',
+  'assets/gallery/07.jpg','assets/gallery/08.jpg' // <-- mais fota
 ];
 async function loadGallery(){
   try{
