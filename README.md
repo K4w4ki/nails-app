@@ -1,124 +1,97 @@
-# Nails by Nascimento - Sistema de Agendamento
+# 💅 Nails by Nascimento — Sistema de Agendamento
 
-Sistema de agendamento para manicure desenvolvido como projeto piloto acadêmico.
+![Status do Projeto](https://img.shields.io/badge/status-conclu%C3%ADdo-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-1.0.0-blue)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-Acad%C3%AAmica-lightgrey)
 
-## 📋 Visão Geral
+Sistema web completo e responsivo para gestão de agendamentos de um estúdio de manicure. Desenvolvido para otimizar o fluxo de trabalho da profissional (Carol) e proporcionar uma experiência de agendamento premium e sem fricção para as clientes.
 
-- **Cliente**: agenda serviços, consulta horários, cancela e reagenda
-- **Profissional (Carol)**: gerencia agendamentos, disponibilidade, serviços e faturamento
-- **Tecnologia**: Firebase (Authentication + Firestore)
+---
 
-## 🚀 Como Configurar
+## 📑 Índice
 
-### 1. Criar Projeto Firebase
+- [✨ Funcionalidades](#-funcionalidades)
+- [🛠️ Tecnologias Utilizadas](#️-tecnologias-utilizadas)
+- [📂 Estrutura do Projeto](#-estrutura-do-projeto)
+- [🚀 Como Executar e Configurar](#-como-executar-e-configurar)
+- [🔒 Segurança (Firestore Rules)](#-segurança-firestore-rules)
+- [🎨 Design System](#-design-system)
+- [📝 Licença](#-licença)
 
-1. Acesse [Firebase Console](https://console.firebase.google.com/)
-2. Clique em "Criar projeto"
-3. Dê um nome (ex: "nails-by-nascimento")
-4. Siga as instruções até a criação
+---
 
-### 2. Ativar Serviços
+## ✨ Funcionalidades
 
-**Authentication:**
-- No menu esquerdo, clique em "Authentication"
-- Clique em "Começar"
-- Ative "E-mail/senha"
+O sistema foi dividido em duas grandes áreas: **Área da Cliente** e **Área Administrativa**.
 
-**Firestore:**
-- No menu esquerdo, clique em "Firestore Database"
-- Clique em "Criar banco de dados"
-- Escolha "Modo de teste" (inicialmente)
-- Selecione a região mais próxima
+### 👩‍🦰 Área da Cliente (Público)
 
-### 3. Criar Administrador
+- **Site Institucional:** Páginas de Início, Serviços, Preços, Galeria e Sobre, todas alimentadas dinamicamente pelo banco de dados.
+- **Agendamento Inteligente:** Fluxo em 4 etapas (Serviço → Data/Hora → Dados → Sinal PIX).
+- **Calendário Customizado:** Interface elegante para escolha de datas, bloqueando dias passados e horários já ocupados.
+- **Pagamento de Sinal:** Integração visual com chave PIX para reserva do horário.
+- **Consulta de Horários:** Área "Meus Horários" onde a cliente pode consultar, cancelar ou reagendar seu atendimento usando apenas o WhatsApp.
+- **Galeria Dinâmica:** Portfólio com suporte a até 9 fotos (ou mais) exibidas em uma grade responsiva.
+- **Design Responsivo:** Experiência fluida em computadores, tablets e celulares.
 
-1. No Authentication, vá para "Usuários"
-2. Clique em "Adicionar usuário"
-3. Preencha:
-   - E-mail: carol@exemplo.com
-   - Senha: (crie uma senha segura)
-4. Copie o UID do usuário criado
+### 👑 Área Administrativa (Carol)
 
-### 4. Criar Coleção de Administradores
+- **Autenticação Segura:** Login exclusivo via Firebase Authentication (E-mail/Senha).
+- **Dashboard Inteligente:** Visualização rápida de solicitações pendentes, aguardando sinal e confirmadas no dia.
+- **Gestão de Solicitações:** Aprovar, recusar, cobrar sinal via WhatsApp, confirmar e concluir atendimentos.
+- **Gestão de Agenda:** Modal interativo para bloquear ou liberar horários específicos em qualquer data.
+- **Gestão de Catálogo:** Criar, editar e excluir serviços (Nome, Descrição, Duração, Preço e Emoji).
+- **Gestão de Galeria:** Adicionar e remover fotos do portfólio dinamicamente.
+- **Relatório de Faturamento:** Cálculo automático da receita baseada nos atendimentos concluídos.
 
-No Firestore, crie a coleção:
+---
 
+## 🛠️ Tecnologias Utilizadas
 
-### 5. Configurar Credenciais
+O projeto foi construído utilizando tecnologias web nativas (Vanilla) para garantir máxima performance e leveza, sem a necessidade de frameworks complexos.
 
-1. No Firebase Console, vá em "Configurações do projeto" → "Geral"
-2. Role até "Seus apps" e copie o objeto de configuração
-3. No arquivo `firebase-config.js`, substitua os placeholders
+| Camada | Tecnologia | Descrição |
+|---|---|---|
+| **Frontend** | HTML5 | Estrutura semântica das páginas |
+| **Frontend** | CSS3 | Design System próprio com CSS Variables |
+| **Frontend** | JavaScript (ES6+) | Lógica do lado do cliente |
+| **BaaS** | [Firebase](https://firebase.google.com/) | Backend as a Service |
+| **Banco de Dados** | Firestore | Banco NoSQL em tempo real |
+| **Autenticação** | Firebase Auth | Login seguro do painel admin |
+| **Tipografia** | Google Fonts | Cormorant Garamond + Poppins |
 
-### 6. Aplicar Security Rules
+---
 
-1. No Firestore, vá em "Regras"
-2. Cole o conteúdo de `firestore.rules`
-3. Clique em "Publicar"
+## 📂 Estrutura do Projeto
 
-### 7. Publicar o Site
+A arquitetura foi pensada para ser modular e de fácil manutenção:
 
-Opções simples:
-- **GitHub Pages**: crie um repositório e ative o Pages
-- **Netlify/Vercel**: arraste a pasta do projeto
-- **Local**: use extensão Live Server no VS Code
-
-## 📁 Estrutura do Projeto
-
-
-## 🔄 Fluxos Principais
-
-### Agendamento
-1. Cliente escolhe serviço
-2. Seleciona data e horário
-3. Preenche dados e envia
-4. Status: **pendente**
-
-### Administração
-1. Carol faz login
-2. Visualiza solicitações
-3. Aprova/recusa
-4. Gerencia disponibilidade
-5. Edita serviços
-
-### Cliente
-1. Consulta pelo WhatsApp
-2. Visualiza status
-3. Cancela ou reagenda
-4. Limite de 3 reagendamentos
-
-## 🔐 Status dos Agendamentos
-
-| Status | Descrição |
-|--------|-----------|
-| pendente | Aguardando análise da Carol |
-| aguardando-sinal | Aprovado, aguardando depósito |
-| confirmado | Agendamento confirmado |
-| concluido | Atendimento realizado |
-| recusado | Não aprovado pela Carol |
-| cancelado | Cancelado pelo cliente |
-
-## 📱 WhatsApp
-
-Os links utilizam `wa.me` para:
-- Cobrança de sinal
-- Lembretes
-- Comunicação direta
-
-## 🛠️ Tecnologias
-
-- HTML/CSS (design original preservado)
-- JavaScript (vanilla)
-- Firebase Authentication
-- Cloud Firestore
-
-## 📝 Notas
-
-- Este é um **projeto piloto acadêmico**
-- Os dados são persistidos no Firestore
-- Não armazene senhas no código ou no Firestore
-- O administrador é definido pela coleção `admins`
-
-## 📄 Licença
-
-Uso acadêmico e demonstrativo.
+```text
+/
+├── index.html              # Página inicial
+├── servicos.html           # Catálogo de serviços
+├── precos.html             # Tabela de preços
+├── galeria.html            # Portfólio
+├── sobre.html              # História da Carol
+├── agendamento.html        # Fluxo de agendamento (Cliente)
+├── meus-horarios.html      # Consulta de agendamentos (Cliente)
+├── admin.html              # Painel da Carol (Admin)
+│
+├── /css
+│   └── styles.css          # Design System global (13 seções organizadas)
+│
+├── /js
+│   ├── firebase-config.js  # Credenciais do Firebase
+│   ├── app-core.js         # Funções utilitárias e globais
+│   ├── site.js             # Renderização das páginas públicas
+│   ├── booking.js          # Lógica do agendamento e calendário
+│   ├── lookup.js           # Lógica da consulta "Meus Horários"
+│   └── admin.js            # Lógica do painel administrativo
+│
+├── /assets
+│   ├── logo.png
+│   ├── hero.jpg
+│   ├── carol.jpg
+│   └── /gallery            # Fotos do portfólio (01.jpg a 09.jpg)
+│
+└── firestore.rules         # Regras de segurança do banco de dados
