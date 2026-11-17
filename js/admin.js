@@ -428,7 +428,7 @@ async function renderAdminAppointments() {
       on('.refuse', () => updateAppointment(a.id, { status: 'recusado' }, 'Recusado.'));
       on('.deposit', () => updateAppointment(a.id, { status: 'confirmado', deposito: 'pago' }, 'Confirmado!'));
       on('.complete', () => updateAppointment(a.id, { status: 'concluido' }, 'Concluído.'));
-      on('.cancel', () => updateAppointment(a.id, { status: 'cancelado' }, 'Cancelado.'));
+      on('.cancel', () => updateAppointment(a.id, { status: 'cancelado', canceladoPor: 'carol' }, 'Cancelado.'));
       r.appendChild(el);
     });
   } catch(e) { 

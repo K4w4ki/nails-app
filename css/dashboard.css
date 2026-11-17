@@ -1,0 +1,94 @@
+/* =========================================================
+   DASHBOARD — Área da Carol
+   Usa as variáveis do styles.css (--ink, --line, --ok, --bad…)
+   ========================================================= */
+
+.dash{padding-top:clamp(28px,4vw,48px)}
+
+/* ---------- Topo ---------- */
+.dash-top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.dash-top h1{font-size:clamp(32px,4.4vw,52px);margin-top:12px}
+.dash-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+.month-nav{display:inline-flex;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:4px}
+.month-nav button{width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--ink);font-size:20px;line-height:1;cursor:pointer;transition:background .2s var(--ease)}
+.month-nav button:hover{background:var(--soft)}
+.month-nav strong{min-width:150px;text-align:center;font-size:14px;font-weight:600}
+
+.live{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:500}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:livePulse 2s infinite}
+.live.off i{background:var(--line-2);animation:none}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 #46654d80}70%{box-shadow:0 0 0 8px #46654d00}100%{box-shadow:0 0 0 0 #46654d00}}
+
+/* ---------- Estado de carregamento ---------- */
+.kpi-grid,.dash-grid{transition:opacity .5s var(--ease)}
+.is-loading .kpi-grid,.is-loading .dash-grid{opacity:.35;pointer-events:none}
+
+/* ---------- KPIs ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;display:flex;flex-direction:column;gap:6px;
+     animation:rise .7s var(--ease) both;animation-delay:calc(var(--i) * 70ms)}
+.kpi-top{display:flex;align-items:center;gap:10px}
+.kpi-icon{width:34px;height:34px;border-radius:10px;background:var(--soft);display:grid;place-items:center;font-size:16px;flex:none}
+.kpi-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;line-height:1.3}
+.kpi-val{font-family:var(--font-display);font-size:40px;font-weight:700;line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi-hint{font-size:12px;color:var(--muted);min-height:18px}
+
+.kpi.wide{grid-column:span 2;background:var(--ink);border-color:var(--ink);color:#fff}
+.kpi.wide .kpi-icon{background:#ffffff1a}
+.kpi.wide .kpi-label,.kpi.wide .kpi-hint{color:#d6d0ca}
+.kpi.wide .kpi-val{font-size:clamp(44px,5vw,60px)}
+
+.delta{display:inline-flex;align-items:center;gap:4px;font-weight:600}
+.delta.up{color:var(--ok)}
+.delta.down{color:var(--bad)}
+.delta.flat{color:var(--muted);font-weight:500}
+.kpi.wide .delta.up{color:#9fd3aa}
+.kpi.wide .delta.down{color:#eaa9ac}
+.kpi.wide .delta.flat{color:#d6d0ca}
+
+/* ---------- Grade dos gráficos ---------- */
+.dash-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.span-8{grid-column:span 8}
+.span-4{grid-column:span 4}
+
+.dash-card{padding:24px;animation:rise .7s var(--ease) both}
+.dash-card:nth-child(1){animation-delay:.35s}
+.dash-card:nth-child(2){animation-delay:.42s}
+.dash-card:nth-child(3){animation-delay:.49s}
+.dash-card:nth-child(4){animation-delay:.56s}
+.dash-card:nth-child(5){animation-delay:.63s}
+.dash-card:hover{transform:none;box-shadow:var(--shadow-sm)}
+.dash-card h3{font-size:24px;margin:8px 0 0}
+.dash-card .sub{font-size:12.5px;color:var(--muted);margin:4px 0 18px}
+
+.chart-box{position:relative;height:310px}
+.chart-box.sm{height:250px}
+.chart-box[data-empty="1"]::after{
+  content:"Sem dados neste mês";position:absolute;inset:0;display:grid;place-items:center;
+  background:#ffffffcc;border-radius:var(--r-sm);color:var(--muted);font-size:13px;font-weight:500;
+}
+
+/* ---------- Legenda do gráfico de status ---------- */
+.legend-list{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
+.legend-list li{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft)}
+.legend-list i{width:10px;height:10px;border-radius:3px;flex:none}
+.legend-list b{margin-left:auto;font-weight:600;color:var(--ink)}
+
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ---------- Responsivo ---------- */
+@media(max-width:1100px){
+  .span-8,.span-4{grid-column:span 12}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .kpi{padding:16px}
+  .kpi-val{font-size:32px}
+  .month-nav strong{min-width:120px}
+  .legend-list{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .kpi,.dash-card{animation:none}
+  .live i{animation:none}
+}
