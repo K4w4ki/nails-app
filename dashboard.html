@@ -68,14 +68,14 @@
         <span class="eyebrow">Receita</span>
         <h3>Faturamento por dia</h3>
         <p class="sub">Receita dos atendimentos concluídos, dia a dia e acumulada no mês</p>
-        <div class="chart-box"><canvas id="cDaily" role="img" aria-label="Faturamento por dia e acumulado do mês"></canvas></div>
+        <div class="chart-box"><div id="cDaily" class="plot" role="img" aria-label="Faturamento por dia e acumulado do mês"></div></div>
       </article>
 
       <article class="card dash-card span-4">
         <span class="eyebrow">Agenda</span>
         <h3>Situação das solicitações</h3>
         <p class="sub">Todas as solicitações do mês, por status</p>
-        <div class="chart-box sm"><canvas id="cStatus" role="img" aria-label="Solicitações por status"></canvas></div>
+        <div class="chart-box sm"><div id="cStatus" class="plot" role="img" aria-label="Solicitações por status"></div></div>
         <ul class="legend-list" id="statusLegend"></ul>
       </article>
 
@@ -83,21 +83,21 @@
         <span class="eyebrow">Tendência</span>
         <h3>Últimos 6 meses</h3>
         <p class="sub">Faturamento (barras) e atendimentos (linha)</p>
-        <div class="chart-box sm"><canvas id="cTrend" role="img" aria-label="Faturamento e atendimentos dos últimos 6 meses"></canvas></div>
+        <div class="chart-box sm"><div id="cTrend" class="plot" role="img" aria-label="Faturamento e atendimentos dos últimos 6 meses"></div></div>
       </article>
 
       <article class="card dash-card span-4">
         <span class="eyebrow">Catálogo</span>
         <h3>Serviços mais realizados</h3>
         <p class="sub">Atendimentos concluídos no mês</p>
-        <div class="chart-box sm"><canvas id="cServices" role="img" aria-label="Serviços mais realizados"></canvas></div>
+        <div class="chart-box sm"><div id="cServices" class="plot" role="img" aria-label="Serviços mais realizados"></div></div>
       </article>
 
       <article class="card dash-card span-4">
         <span class="eyebrow">Ocorrências</span>
         <h3>Reagendamentos e cancelamentos</h3>
         <p class="sub">Por semana do mês · cancelamentos feitos pela Carol</p>
-        <div class="chart-box sm"><canvas id="cOcc" role="img" aria-label="Reagendamentos e cancelamentos por semana"></canvas></div>
+        <div class="chart-box sm"><div id="cOcc" class="plot" role="img" aria-label="Reagendamentos e cancelamentos por semana"></div></div>
       </article>
 
     </div>
@@ -118,7 +118,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/app-core.js"></script>
 <script src="js/dashboard.js"></script>

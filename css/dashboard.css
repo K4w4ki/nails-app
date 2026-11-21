@@ -62,8 +62,8 @@
 .dash-card h3{font-size:24px;margin:8px 0 0}
 .dash-card .sub{font-size:12.5px;color:var(--muted);margin:4px 0 16px}
 
-.chart-box{position:relative;min-width:0;height:310px}
-.chart-box.sm{height:250px}
+.chart-box{position:relative;flex:1 1 auto;min-width:0;min-height:310px}
+.chart-box.sm{min-height:250px}
 
 /* ---------- Legendas (HTML, clicáveis) ---------- */
 .chart-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 12px}
@@ -75,9 +75,10 @@
 .sw.bar{width:10px;height:10px;border-radius:3px}
 .sw.line{width:16px;height:3px;border-radius:2px}
 
-.legend-list{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
-.legend-list li{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft)}
+.legend-list{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.legend-list li{min-width:0;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft)}
 .legend-list li.zero{opacity:.45}
+.legend-list span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .legend-list i{width:9px;height:9px;border-radius:3px;flex:none}
 .legend-list b{margin-left:auto;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 
@@ -85,7 +86,7 @@
 .empty-state{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 24px;text-align:center;font-size:13px;line-height:1.5;color:var(--muted);border:1px dashed var(--line-2);border-radius:var(--r-sm)}
 .empty-state svg{opacity:.55}
 .dash-card[data-empty="1"] .empty-state{display:flex}
-.dash-card[data-empty="1"] canvas,
+.dash-card[data-empty="1"] .plot,
 .dash-card[data-empty="1"] .chart-legend,
 .dash-card[data-empty="1"] .legend-list{visibility:hidden}
 
@@ -108,4 +109,61 @@
 @media(prefers-reduced-motion:reduce){
   .live i{animation:none}
   .kpi,.lg,.kpi-grid,.dash-grid{transition:none}
+}
+
+/* ---------- Gráficos próprios (SVG/HTML) ---------- */
+.plot{position:absolute;inset:0}
+.plot svg{display:block;overflow:visible}
+.plot .gl{stroke:#e9e5df;stroke-width:1}
+.plot .gl.z{stroke:#d6d0c8}
+.plot .ax{font:400 11.5px var(--font-body);fill:#8a847c}
+.plot .ax.r{fill:#8a6531}
+.plot .yr{font-size:10.5px;fill:#a39d94}
+.plot .ln{stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.plot .dot{fill:#fff;stroke-width:2;transition:r .12s var(--ease)}
+.plot .dot.hv{opacity:0}
+.plot .col:hover .dot.hv{opacity:1}
+.plot .col:hover .dot{r:6}
+.plot .xh{stroke:#28282826;stroke-width:1;opacity:0}
+.plot .col:hover .xh{opacity:1}
+.plot .hit{fill:transparent}
+.plot .dn{font:600 32px var(--font-body);fill:var(--ink)}
+.plot .dl{font:500 11.5px var(--font-body);fill:#8a847c}
+.plot .seg{transition:opacity .15s var(--ease)}
+.plot .donut:has(.seg:hover) .seg:not(:hover){opacity:.3}
+
+/* ranking de serviços */
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.rk-row{display:flex;align-items:baseline;gap:10px;font-size:13px;line-height:18px}
+.rk-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ink)}
+.rk-rev{flex:none;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rk-val{flex:none;min-width:20px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.rk-track{height:6px;margin-top:6px;border-radius:99px;background:#efebe5;overflow:hidden}
+.rk-track i{display:block;height:100%;border-radius:99px;background:var(--ink-soft)}
+.rk-track i.top{background:#b08a4a}
+
+/* tooltip */
+.ctip{position:fixed;left:0;top:0;z-index:60;max-width:260px;padding:10px 12px;border-radius:10px;background:var(--ink);color:#fff;font:400 12px/1.45 var(--font-body);pointer-events:none;opacity:0;transition:opacity .12s var(--ease)}
+.ctip.on{opacity:1}
+.ctip .tt{margin-bottom:6px;font-weight:600}
+.ctip .tr{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.ctip .tr i{width:8px;height:8px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px #ffffff40}
+.ctip .tr b{margin-left:auto;padding-left:14px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* animação de entrada (só quando os dados mudam) */
+@keyframes grow{from{transform:scaleY(0)}}
+@keyframes growx{from{transform:scaleX(0)}}
+@keyframes draw{from{stroke-dasharray:1;stroke-dashoffset:1}to{stroke-dasharray:1;stroke-dashoffset:0}}
+@keyframes fade{from{opacity:0}}
+.plot .anim .bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s var(--ease) both;animation-delay:calc(var(--i) * 35ms)}
+.plot .anim .ln{animation:draw 1s var(--ease) .2s both}
+.plot .anim .area,.plot .anim .dot{animation:fade .6s var(--ease) .5s both}
+.plot .anim .seg{animation:fade .7s var(--ease) both;animation-delay:calc(var(--i) * 70ms)}
+.rank.anim .rk-track i{transform-origin:0 50%;animation:growx .7s var(--ease) both;animation-delay:calc(var(--i) * 70ms)}
+@media(prefers-reduced-motion:reduce){.plot *,.rank *{animation:none!important}}
+
+/* Primeiro bloco: mais espaço para a rosca e sua legenda em telas largas */
+@media(min-width:1101px){
+  .dash-grid>.dash-card:nth-child(1){grid-column:span 7}
+  .dash-grid>.dash-card:nth-child(2){grid-column:span 5}
 }
