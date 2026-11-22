@@ -1237,3 +1237,8 @@ main.page-enter {
   .cal-day:hover:not(.selected){transform:none;background:transparent}
   .service:hover{transform:none}
 }
+
+/* ============ VALIDAÇÃO DE FORMULÁRIOS ============ */
+.field-error{display:block;color:var(--bad);font-size:12px;line-height:1.4}
+.field-error[hidden]{display:none}
+.field input.invalid,.field select.invalid{border-color:var(--bad);box-shadow:0 0 0 3px #9651541a}

@@ -87,13 +87,14 @@
         <article class="card mt-6 b-data">
           <h3>Seus dados</h3>
           <div class="field-row" style="margin-top:16px">
-            <div class="field"><label for="name">Nome</label><input id="name" autocomplete="name" placeholder="Como podemos chamar você?"></div>
-            <div class="field"><label for="phone">WhatsApp</label><input id="phone" autocomplete="tel" inputmode="numeric" maxlength="15" placeholder="(11) 99999-9999"></div>
+            <div class="field"><label for="name">Nome</label><input id="name" autocomplete="name" maxlength="80" aria-describedby="nameErr" placeholder="Como podemos chamar você?"><small class="field-error" id="nameErr" role="alert" hidden></small></div>
+            <div class="field"><label for="phone">WhatsApp</label><input id="phone" autocomplete="tel" inputmode="numeric" maxlength="15" aria-describedby="phoneErr" placeholder="(11) 99999-9999"><small class="field-error" id="phoneErr" role="alert" hidden></small></div>
           </div>
           <div class="field" style="display:flex;gap:10px;align-items:flex-start">
             <input id="privacy" type="checkbox" style="width:auto;margin-top:4px">
             <label for="privacy" style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;font-size:13px;margin:0">Autorizo o uso destes dados exclusivamente para este agendamento.</label>
           </div>
+          <small class="field-error" id="privacyErr" role="alert" hidden></small>
         </article>
 
         <article class="card mt-6 b-pix" id="pixCard">
