@@ -1,0 +1,40 @@
+/* =========================================================
+   CLIENTES — Histórico de atendimentos por cliente
+   Reaproveita as variáveis definidas em styles.css
+   ========================================================= */
+
+.client-results{display:flex;flex-direction:column;gap:10px}
+.client-results .empty{padding:18px;border:1px dashed var(--line-2,var(--line));border-radius:var(--r-sm);color:var(--muted);font-size:13px;text-align:center}
+
+.client-row{display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;transition:border-color .2s var(--ease)}
+.client-row:hover{border-color:var(--line-2,var(--ink))}
+.client-row-main h3{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.client-row-main p{font-size:13px;color:var(--muted);margin:0}
+.client-row-stats{text-align:right;flex:none}
+.client-row-stats b{display:block;font-size:18px;font-weight:600}
+.client-row-stats span{font-size:11.5px;color:var(--muted)}
+
+.badge.loyal{display:inline-block;padding:2px 10px;border-radius:999px;background:#46654d1a;color:var(--ok,#46654d);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+.client-detail.hidden{display:none}
+.client-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.client-detail-head h2{font-size:28px;margin:4px 0 2px}
+
+.client-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:20px}
+.client-summary-grid div{display:flex;flex-direction:column;gap:2px;padding:14px;background:var(--mist,var(--soft));border-radius:var(--r-sm);text-align:center}
+.client-summary-grid b{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.client-summary-grid span{font-size:11px;color:var(--muted)}
+
+.client-history-list{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto}
+.client-history-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:13.5px}
+.client-history-row strong{display:block}
+.client-history-row span{font-size:12px;color:var(--muted)}
+.client-history-row > div:last-child{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+
+@media(max-width:800px){
+  .client-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .client-row{flex-direction:column;align-items:flex-start}
+  .client-row-stats{text-align:left}
+}
