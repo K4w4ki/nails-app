@@ -1,6 +1,5 @@
 /* =========================================================
    CLIENTES — Histórico de atendimentos por cliente
-   Reaproveita as variáveis definidas em styles.css
    ========================================================= */
 
 .client-results{display:flex;flex-direction:column;gap:10px}

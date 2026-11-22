@@ -89,8 +89,6 @@ function sumWeek(list, start, end) {
   return { revenue, done };
 }
 function weekDeltaHTML(cur, prev) {
-  // Igual ao deltaHTML(), mas com o texto certo para comparação semanal
-  // (o original diz "vs mês anterior", fixo).
   const note = t => `<span class="delta-note">${t}</span>`;
   if (!prev) return cur ? note('sem semana anterior para comparar') : '';
   const p = (cur - prev) / prev * 100;
@@ -98,7 +96,6 @@ function weekDeltaHTML(cur, prev) {
   const up = p > 0;
   return `<span class="delta ${up ? 'up' : 'down'}">${svg(up ? 'up' : 'down', 12, 2.25)}${Math.abs(p).toFixed(0)}%</span>${note('vs semana anterior')}`;
 }
-
 function renderWeekSummary() {
   if (!$('weekSummary')) return;
   const cur = weekRangeOffset(0), prev = weekRangeOffset(-1);

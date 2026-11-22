@@ -1,17 +1,10 @@
 'use strict';
-/* =========================================================
-   CLIENTES — busca por nome/WhatsApp + histórico completo
-   Requer login de admin, igual às outras telas internas.
-   ========================================================= */
-
 let allClientesCache = null;
 let allAgendamentosCache = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!document.getElementById('clientSearch')) return;
 
-  // Mesmo padrão de proteção de página usado no dashboard.js:
-  // sem login de admin válido, volta para admin.html.
   auth.onAuthStateChanged(async (user) => {
     if (!user) { location.replace('admin.html'); return; }
     try {
