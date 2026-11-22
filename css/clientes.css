@@ -105,3 +105,17 @@
   .cl-toolbar{flex-direction:column}
   .cl-kpi b{font-size:24px}
 }
+
+/* Diálogo de confirmação */
+.btn-danger{background:var(--bad,#965154);border-color:var(--bad,#965154);color:#fff}
+.btn-danger:hover{filter:brightness(.92)}
+.dlg-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:#28282873;backdrop-filter:blur(3px);opacity:0;transition:opacity .18s var(--ease)}
+.dlg-overlay.on{opacity:1}
+.dlg{width:100%;max-width:400px;padding:28px 26px 22px;background:var(--white);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 24px 60px #00000030;text-align:center;transform:translateY(8px) scale(.98);transition:transform .2s var(--ease)}
+.dlg-overlay.on .dlg{transform:none}
+.dlg-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 14px;border-radius:50%;background:#9651541a;color:var(--bad,#965154)}
+.dlg h3{margin:0 0 8px;font-size:24px}
+.dlg p{margin:0;font-size:13.5px;line-height:1.55;color:var(--muted);white-space:pre-line}
+.dlg-actions{display:flex;gap:10px;margin-top:24px}
+.dlg-actions .btn{flex:1;justify-content:center}
+@media(prefers-reduced-motion:reduce){.dlg-overlay,.dlg{transition:none}}

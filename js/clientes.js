@@ -187,7 +187,12 @@ function renderDetail(e) {
 
   $('delHistory').addEventListener('click', async () => {
     if (!hist.length) { toast('Essa cliente não tem histórico.'); return; }
-    if (!confirm(`Apagar os ${hist.length} agendamento${hist.length === 1 ? '' : 's'} de ${c.nome || 'esta cliente'}?\n\nIsso também tira esses valores do faturamento do dashboard e não dá para desfazer.`)) return;
+    const okH = await confirmDialog({
+      title: 'Apagar histórico?',
+      text: `Os ${hist.length} agendamento${hist.length === 1 ? '' : 's'} de ${c.nome || 'esta cliente'} serão apagados e deixam de contar no faturamento do dashboard. Não dá para desfazer.`,
+      confirmLabel: 'Apagar histórico'
+    });
+    if (!okH) return;
     try {
       for (let i = 0; i < hist.length; i += 450) {
         const batch = db.batch();
@@ -208,8 +213,13 @@ function renderDetail(e) {
   });
 
   $('delClient').addEventListener('click', async () => {
-    const aviso = hist.length ? `\n\nOs ${hist.length} agendamentos dela continuam salvos (use o botão de histórico antes se quiser apagá-los também).` : '';
-    if (!confirm(`Apagar o cadastro de ${c.nome || 'esta cliente'}?${aviso}`)) return;
+    const aviso = hist.length ? `\n\nOs ${hist.length} agendamento${hist.length === 1 ? '' : 's'} dela continuam salvos (apague o histórico antes se quiser removê-los também).` : '';
+    const okC = await confirmDialog({
+      title: 'Apagar cadastro?',
+      text: `O cadastro de ${c.nome || 'esta cliente'} será removido da lista.${aviso}`,
+      confirmLabel: 'Apagar cadastro'
+    });
+    if (!okC) return;
     try {
       await db.collection('clientes').doc(c.id).delete();
       clientes = clientes.filter(x => x.id !== c.id);
@@ -224,5 +234,40 @@ function renderDetail(e) {
       console.error(err);
       toast('Erro ao apagar cadastro.');
     }
+  });
+}
+
+function confirmDialog({ title, text, confirmLabel = 'Apagar' }) {
+  return new Promise((resolve) => {
+    const prev = document.activeElement;
+    const o = document.createElement('div');
+    o.className = 'dlg-overlay';
+    o.innerHTML = `
+      <div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgT" aria-describedby="dlgD">
+        <span class="dlg-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></span>
+        <h3 id="dlgT">${esc(title)}</h3>
+        <p id="dlgD">${esc(text)}</p>
+        <div class="dlg-actions">
+          <button type="button" class="btn btn-ghost" data-r="0">Cancelar</button>
+          <button type="button" class="btn btn-danger" data-r="1">${esc(confirmLabel)}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(o);
+    requestAnimationFrame(() => o.classList.add('on'));
+
+    const done = (v) => {
+      document.removeEventListener('keydown', onKey);
+      o.classList.remove('on');
+      setTimeout(() => { o.remove(); if (prev && prev.focus) prev.focus(); }, 180);
+      resolve(v);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') done(false); };
+    document.addEventListener('keydown', onKey);
+    o.addEventListener('click', (e) => {
+      if (e.target === o) return done(false);
+      const b = e.target.closest('[data-r]');
+      if (b) done(b.dataset.r === '1');
+    });
+    o.querySelector('[data-r="0"]').focus();
   });
 }
