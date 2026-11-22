@@ -45,6 +45,13 @@ function setStep(n) {
     p.classList.toggle('active', s === n);
     p.classList.toggle('done', s < n);
   });
+  // no celular as etapas rolam na horizontal: centraliza a etapa atual (sem mexer na rolagem da página)
+  const bar = document.getElementById('stepsPills');
+  const cur = bar && bar.querySelector('.step-pill.active');
+  if (cur && bar.scrollWidth > bar.clientWidth) {
+    const left = cur.getBoundingClientRect().left - bar.getBoundingClientRect().left + bar.scrollLeft;
+    bar.scrollTo({ left: left - (bar.clientWidth - cur.offsetWidth) / 2, behavior: 'smooth' });
+  }
 }
 
 function currentStep() {
