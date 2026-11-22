@@ -149,6 +149,12 @@ function renderDetail(e) {
         <p>${formatPhoneDisplay(c.telefone)}${e.last ? ' · última visita ' + br(e.last) : ''}</p>
       </div>
       <div class="cl-head-actions">
+        <button type="button" class="cl-del" id="delHistory" aria-label="Apagar histórico" title="Apagar histórico">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </button>
+        <button type="button" class="cl-del" id="delClient" aria-label="Apagar cadastro" title="Apagar cadastro">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
         <a class="btn btn-primary" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>
         <button type="button" class="btn btn-ghost cl-back" id="closeDetail">Voltar</button>
       </div>
@@ -177,5 +183,46 @@ function renderDetail(e) {
     document.querySelector('.cl-layout').classList.remove('has-detail');
     renderPlaceholder();
     renderList();
+  });
+
+  $('delHistory').addEventListener('click', async () => {
+    if (!hist.length) { toast('Essa cliente não tem histórico.'); return; }
+    if (!confirm(`Apagar os ${hist.length} agendamento${hist.length === 1 ? '' : 's'} de ${c.nome || 'esta cliente'}?\n\nIsso também tira esses valores do faturamento do dashboard e não dá para desfazer.`)) return;
+    try {
+      for (let i = 0; i < hist.length; i += 450) {
+        const batch = db.batch();
+        hist.slice(i, i + 450).forEach(a => batch.delete(db.collection('agendamentos').doc(a.id)));
+        await batch.commit();
+      }
+      const ids = new Set(hist.map(a => a.id));
+      agendamentos = agendamentos.filter(a => !ids.has(a.id));
+      enriched = clientes.map(enrich);
+      renderKpis();
+      renderList();
+      renderDetail(enriched.find(x => x.c.id === c.id));
+      toast('Histórico apagado.');
+    } catch (err) {
+      console.error(err);
+      toast('Erro ao apagar histórico.');
+    }
+  });
+
+  $('delClient').addEventListener('click', async () => {
+    const aviso = hist.length ? `\n\nOs ${hist.length} agendamentos dela continuam salvos (use o botão de histórico antes se quiser apagá-los também).` : '';
+    if (!confirm(`Apagar o cadastro de ${c.nome || 'esta cliente'}?${aviso}`)) return;
+    try {
+      await db.collection('clientes').doc(c.id).delete();
+      clientes = clientes.filter(x => x.id !== c.id);
+      enriched = enriched.filter(x => x.c.id !== c.id);
+      selectedId = null;
+      document.querySelector('.cl-layout').classList.remove('has-detail');
+      renderPlaceholder();
+      renderKpis();
+      renderList();
+      toast('Cadastro apagado.');
+    } catch (err) {
+      console.error(err);
+      toast('Erro ao apagar cadastro.');
+    }
   });
 }

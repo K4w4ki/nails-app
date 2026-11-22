@@ -65,8 +65,11 @@
 .client-detail-head .who{flex:1;min-width:0}
 .client-detail-head h2{font-size:28px;margin:0}
 .client-detail-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
-.cl-head-actions{display:flex;gap:8px}
+.cl-head-actions{display:flex;align-items:center;gap:8px}
 .cl-back{display:none}
+.cl-del{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),border-color .2s var(--ease),background .2s var(--ease)}
+.cl-del:hover{color:var(--bad);border-color:var(--bad);background:#9651541a}
+.cl-del:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 .client-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:22px 0}
 .client-summary-grid div{display:flex;flex-direction:column;gap:2px;padding:14px;background:var(--mist,var(--soft));border-radius:var(--r-sm)}
