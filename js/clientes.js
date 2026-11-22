@@ -1,139 +1,181 @@
 'use strict';
-let allClientesCache = null;
-let allAgendamentosCache = null;
+let clientes = [];
+let agendamentos = [];
+let enriched = [];
+let selectedId = null;
+const cl = { q: '', filter: 'all', sort: 'recent' };
+
+const $ = (id) => document.getElementById(id);
+const todayKey = () => keyDate(new Date());
+const daysSince = (k) => Math.floor((new Date(todayKey() + 'T12:00:00') - new Date(k + 'T12:00:00')) / 864e5);
+const initials = (n) => (n || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase();
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!document.getElementById('clientSearch')) return;
+  if (!$('clientSearch')) return;
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) { location.replace('admin.html'); return; }
     try {
       const adm = await db.collection('admins').doc(user.uid).get();
-      if (!adm.exists) { await auth.signOut(); location.replace('admin.html'); }
+      if (!adm.exists) { await auth.signOut(); location.replace('admin.html'); return; }
+      init();
     } catch (e) {
       console.error(e);
       location.replace('admin.html');
     }
   });
-
-  document.getElementById('clientSearchBtn').addEventListener('click', searchClients);
-  document.getElementById('clientSearch').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') searchClients();
-  });
 });
 
-async function loadAllData() {
-  if (allClientesCache && allAgendamentosCache) return;
-  const [cs, ag] = await Promise.all([
-    db.collection('clientes').get(),
-    db.collection('agendamentos').get()
-  ]);
-  allClientesCache = cs.docs.map(d => ({ id: d.id, ...d.data() }));
-  allAgendamentosCache = ag.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+let started = false;
+async function init() {
+  if (started) return;
+  started = true;
 
-async function searchClients() {
-  const raw = document.getElementById('clientSearch').value.trim();
-  const resultsEl = document.getElementById('clientResults');
-  document.getElementById('clientDetail').classList.add('hidden');
+  $('clientSearch').addEventListener('input', (e) => { cl.q = e.target.value; renderList(); });
+  $('clientSort').addEventListener('change', (e) => { cl.sort = e.target.value; renderList(); });
+  $('clientFilters').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    cl.filter = b.dataset.f;
+    document.querySelectorAll('#clientFilters .chip').forEach(c => c.classList.toggle('active', c === b));
+    renderList();
+  });
 
-  if (!raw) { toast('Digite um nome ou WhatsApp para buscar.'); return; }
-
-  resultsEl.innerHTML = '<div class="empty">Buscando...</div>';
-
+  $('clientResults').innerHTML = '<div class="empty">Carregando clientes…</div>';
+  renderPlaceholder();
   try {
-    await loadAllData();
-    const q = raw.toLowerCase();
-    const qDigits = digits(raw);
-
-    const matches = allClientesCache.filter((c) => {
-      const nameMatch = (c.nome || '').toLowerCase().includes(q);
-      const phoneMatch = qDigits.length >= 3 && (c.telefone || '').includes(qDigits);
-      return nameMatch || phoneMatch;
-    });
-
-    if (!matches.length) {
-      resultsEl.innerHTML = '<div class="empty">Nenhuma cliente encontrada com esse termo.</div>';
-      return;
-    }
-
-    resultsEl.innerHTML = '';
-    matches.forEach((c) => {
-      const hist = historyFor(c);
-      const concluidos = hist.filter(a => a.status === 'concluido');
-      const totalGasto = concluidos.reduce((s, a) => s + (+a.preco || 0), 0);
-      const isLoyal = hist.some(a => a.status === 'confirmado' || a.status === 'concluido');
-
-      const row = document.createElement('article');
-      row.className = 'client-row card';
-      row.innerHTML = `
-        <div class="client-row-main">
-          <h3>${esc(c.nome || 'Sem nome')} ${isLoyal ? '<span class="badge loyal">Fidelizada</span>' : ''}</h3>
-          <p>${formatPhoneDisplay(c.telefone)} · ${hist.length} agendamento${hist.length === 1 ? '' : 's'} · ${concluidos.length} concluído${concluidos.length === 1 ? '' : 's'}</p>
-        </div>
-        <div class="client-row-stats">
-          <b>${money(totalGasto)}</b>
-          <span>total gasto</span>
-        </div>`;
-      row.addEventListener('click', () => renderClientDetail(c, hist));
-      resultsEl.appendChild(row);
-    });
+    const [cs, ag] = await Promise.all([db.collection('clientes').get(), db.collection('agendamentos').get()]);
+    clientes = cs.docs.map(d => ({ id: d.id, ...d.data() }));
+    agendamentos = ag.docs.map(d => ({ id: d.id, ...d.data() }));
+    enriched = clientes.map(enrich);
+    renderKpis();
+    renderList();
   } catch (e) {
     console.error(e);
-    resultsEl.innerHTML = '<div class="empty">Erro ao buscar clientes.</div>';
+    $('clientResults').innerHTML = '<div class="empty">Erro ao carregar clientes.</div>';
   }
 }
 
-function historyFor(cliente) {
-  return allAgendamentosCache.filter(a => a.clienteId === cliente.id || a.telefone === cliente.telefone);
+function enrich(c) {
+  const hist = agendamentos.filter(a => a.clienteId === c.id || a.telefone === c.telefone);
+  const done = hist.filter(a => a.status === 'concluido');
+  const spent = done.reduce((s, a) => s + (+a.preco || 0), 0);
+  const dates = hist.filter(a => a.data).map(a => a.data).sort();
+  const lastDone = done.map(a => a.data).filter(Boolean).sort().pop() || null;
+  const isLoyal = hist.some(a => a.status === 'confirmado' || a.status === 'concluido');
+  return {
+    c, hist, done, spent, isLoyal,
+    last: dates.length ? dates[dates.length - 1] : null,
+    inactive: !!lastDone && daysSince(lastDone) > 60,
+    isNew: !isLoyal
+  };
 }
 
-function renderClientDetail(c, hist) {
-  const el = document.getElementById('clientDetail');
-  el.classList.remove('hidden');
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function renderKpis() {
+  const total = enriched.length;
+  const loyal = enriched.filter(e => e.isLoyal).length;
+  const revenue = enriched.reduce((s, e) => s + e.spent, 0);
+  const visits = enriched.reduce((s, e) => s + e.done.length, 0);
+  $('clKpis').innerHTML = `
+    <div class="cl-kpi dark"><span>Receita total</span><b>${money(revenue)}</b><small>atendimentos concluídos</small></div>
+    <div class="cl-kpi"><span>Clientes</span><b>${total}</b><small>na base</small></div>
+    <div class="cl-kpi"><span>Fidelizadas</span><b>${loyal}</b><small>${total ? Math.round(loyal / total * 100) : 0}% da base</small></div>
+    <div class="cl-kpi"><span>Ticket médio</span><b>${money(visits ? revenue / visits : 0)}</b><small>por atendimento</small></div>`;
+}
 
+function renderList() {
+  const q = cl.q.trim().toLowerCase();
+  const qd = digits(cl.q);
+  const list = enriched.filter(e => {
+    const okQ = !q || (e.c.nome || '').toLowerCase().includes(q) || (qd.length >= 3 && (e.c.telefone || '').includes(qd));
+    const okF = cl.filter === 'all' || (cl.filter === 'loyal' && e.isLoyal) || (cl.filter === 'new' && e.isNew) || (cl.filter === 'inactive' && e.inactive);
+    return okQ && okF;
+  });
+
+  const sorters = {
+    recent: (a, b) => (b.last || '').localeCompare(a.last || ''),
+    spent: (a, b) => b.spent - a.spent,
+    visits: (a, b) => b.done.length - a.done.length,
+    name: (a, b) => (a.c.nome || '').localeCompare(b.c.nome || '', 'pt-BR')
+  };
+  list.sort(sorters[cl.sort]);
+
+  $('clientCount').textContent = `${list.length} cliente${list.length === 1 ? '' : 's'}`;
+  const box = $('clientResults');
+  if (!list.length) { box.innerHTML = '<div class="empty">Nenhuma cliente encontrada.</div>'; return; }
+
+  box.innerHTML = list.map(e => `
+    <button type="button" class="client-row${e.c.id === selectedId ? ' active' : ''}" data-id="${esc(e.c.id)}">
+      <span class="avatar">${esc(initials(e.c.nome))}</span>
+      <span class="client-row-main">
+        <strong><em>${esc(e.c.nome || 'Sem nome')}</em>${e.isLoyal ? '<span class="badge loyal">Fidelizada</span>' : ''}${e.inactive ? '<span class="badge inactive">Inativa</span>' : ''}</strong>
+        <p>${formatPhoneDisplay(e.c.telefone)} · ${e.last ? 'última visita ' + br(e.last) : 'sem visitas'}</p>
+      </span>
+      <span class="client-row-stats"><b>${money(e.spent)}</b><span>${e.done.length} concluído${e.done.length === 1 ? '' : 's'}</span></span>
+    </button>`).join('');
+
+  box.querySelectorAll('.client-row').forEach(r => r.addEventListener('click', () => selectClient(r.dataset.id)));
+}
+
+function selectClient(id) {
+  selectedId = id;
+  document.querySelectorAll('.client-row').forEach(r => r.classList.toggle('active', r.dataset.id === id));
+  renderDetail(enriched.find(e => e.c.id === id));
+  document.querySelector('.cl-layout').classList.add('has-detail');
+  if (window.matchMedia('(max-width:1000px)').matches) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderPlaceholder() {
+  $('clientDetail').innerHTML = `
+    <div class="cl-placeholder">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      Selecione uma cliente para ver o histórico completo.
+    </div>`;
+}
+
+function renderDetail(e) {
+  if (!e) { renderPlaceholder(); return; }
+  const { c, hist, done, spent } = e;
   const sorted = [...hist].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
-  const concluidos = hist.filter(a => a.status === 'concluido');
-  const totalGasto = concluidos.reduce((s, a) => s + (+a.preco || 0), 0);
-  const canceladosCliente = hist.filter(a => a.status === 'cancelado' && a.canceladoPor === 'cliente').length;
-  const reagendamentos = hist.reduce((s, a) => s + (+a.reagendamentos || 0), 0);
+  const canceladas = hist.filter(a => a.status === 'cancelado' && a.canceladoPor === 'cliente').length;
+  const reag = hist.reduce((s, a) => s + (+a.reagendamentos || 0), 0);
+  const first = (c.nome || '').split(' ')[0] || '';
+  const wa = waLink(c.telefone, `Olá${first ? ', ' + first : ''}! Tudo bem?`);
 
-  el.innerHTML = `
-    <article class="card">
-      <div class="client-detail-head">
-        <div>
-          <span class="eyebrow">Histórico</span>
-          <h2>${esc(c.nome || 'Sem nome')}</h2>
-          <p class="lead" style="font-size:13px">${formatPhoneDisplay(c.telefone)}</p>
-        </div>
-        <button class="btn btn-ghost" id="closeDetail">Fechar</button>
+  $('clientDetail').innerHTML = `
+    <div class="client-detail-head">
+      <span class="avatar lg">${esc(initials(c.nome))}</span>
+      <div class="who">
+        <h2>${esc(c.nome || 'Sem nome')}</h2>
+        <p>${formatPhoneDisplay(c.telefone)}${e.last ? ' · última visita ' + br(e.last) : ''}</p>
       </div>
-
-      <div class="client-summary-grid">
-        <div><b>${hist.length}</b><span>Agendamentos no total</span></div>
-        <div><b>${concluidos.length}</b><span>Concluídos</span></div>
-        <div><b>${money(totalGasto)}</b><span>Total gasto</span></div>
-        <div><b>${reagendamentos}</b><span>Reagendamentos</span></div>
-        <div><b>${canceladosCliente}</b><span>Cancelados por ela</span></div>
+      <div class="cl-head-actions">
+        <a class="btn btn-primary" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>
+        <button type="button" class="btn btn-ghost cl-back" id="closeDetail">Voltar</button>
       </div>
+    </div>
 
-      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+    <div class="client-summary-grid">
+      <div><b>${money(spent)}</b><span>Total gasto</span></div>
+      <div><b>${done.length}</b><span>Concluídos</span></div>
+      <div><b>${money(done.length ? spent / done.length : 0)}</b><span>Ticket médio</span></div>
+      <div><b>${hist.length}</b><span>Agendamentos</span></div>
+      <div><b>${reag}</b><span>Reagendamentos</span></div>
+      <div><b>${canceladas}</b><span>Cancelados por ela</span></div>
+    </div>
 
-      <div class="client-history-list">
-        ${sorted.length ? sorted.map(a => `
-          <div class="client-history-row">
-            <div>
-              <strong>${esc(a.servico || '—')}</strong>
-              <span>${br(a.data)} às ${a.horario || '—'}</span>
-            </div>
-            <div>
-              <span class="badge ${a.status || ''}">${(a.status || '—').replace('-', ' ')}</span>
-              <b>${money(a.preco)}</b>
-            </div>
-          </div>`).join('') : '<div class="empty">Nenhum agendamento registrado.</div>'}
-      </div>
-    </article>`;
+    <h4 class="cl-sub">Histórico <small>${sorted.length} registro${sorted.length === 1 ? '' : 's'}</small></h4>
+    <div class="client-history-list">
+      ${sorted.length ? sorted.map(a => `
+        <div class="client-history-row ${esc(a.status || '')}">
+          <div><strong>${esc(a.servico || '—')}</strong><span>${br(a.data)} às ${esc(a.horario || '—')}</span></div>
+          <div><span class="badge ${esc(a.status || '')}">${esc((a.status || '—').replace('-', ' '))}</span><b>${money(a.preco)}</b></div>
+        </div>`).join('') : '<div class="empty">Nenhum agendamento registrado.</div>'}
+    </div>`;
 
-  document.getElementById('closeDetail').addEventListener('click', () => el.classList.add('hidden'));
+  $('closeDetail').addEventListener('click', () => {
+    selectedId = null;
+    document.querySelector('.cl-layout').classList.remove('has-detail');
+    renderPlaceholder();
+    renderList();
+  });
 }

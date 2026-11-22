@@ -36,34 +36,49 @@
   </div>
 </header>
 
-<main class="section">
+<main class="section cl">
   <div class="container">
 
-    <div class="section-head" style="margin-bottom:26px">
+    <div class="cl-top">
       <div>
         <span class="eyebrow">Clientes</span>
-        <h1 style="font-size:clamp(32px,4.4vw,52px);margin-top:12px">Histórico de clientes</h1>
-        <p class="lead" style="margin-top:8px">Busque por nome ou WhatsApp para ver o histórico completo de atendimentos de uma cliente.</p>
+        <h1>Carteira de clientes</h1>
+        <p class="lead">Histórico, frequência e faturamento de cada cliente em um só lugar.</p>
       </div>
-      <div style="display:flex;gap:10px">
+      <div class="cl-actions">
         <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
         <a class="btn btn-ghost" href="admin.html">Painel</a>
       </div>
     </div>
 
-    <article class="card" style="max-width:760px">
-      <div class="field-row" style="align-items:end;gap:16px">
-        <div class="field" style="margin-bottom:0;flex:1">
-          <label for="clientSearch">Nome ou WhatsApp</label>
-          <input id="clientSearch" placeholder="Ex.: Marina ou (11) 99999-9999" autocomplete="off">
-        </div>
-        <button id="clientSearchBtn" class="btn btn-primary" style="height:48px">Buscar</button>
-      </div>
-      <p class="lead" style="font-size:12px;margin-top:10px">A busca considera o nome (parte do nome já funciona) ou os números do WhatsApp.</p>
-    </article>
+    <div class="cl-kpis" id="clKpis"></div>
 
-    <div id="clientResults" class="client-results mt-6"></div>
-    <div id="clientDetail" class="client-detail mt-6 hidden"></div>
+    <div class="cl-layout">
+      <section class="card cl-list-card">
+        <div class="cl-toolbar">
+          <label class="cl-search">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="clientSearch" type="search" placeholder="Buscar por nome ou WhatsApp" autocomplete="off" aria-label="Buscar cliente">
+          </label>
+          <select id="clientSort" aria-label="Ordenar">
+            <option value="recent">Mais recentes</option>
+            <option value="spent">Maior gasto</option>
+            <option value="visits">Mais visitas</option>
+            <option value="name">Nome (A–Z)</option>
+          </select>
+        </div>
+        <div class="cl-chips" id="clientFilters" role="group" aria-label="Filtrar">
+          <button type="button" class="chip active" data-f="all">Todas</button>
+          <button type="button" class="chip" data-f="loyal">Fidelizadas</button>
+          <button type="button" class="chip" data-f="new">Novas</button>
+          <button type="button" class="chip" data-f="inactive">Inativas +60 dias</button>
+        </div>
+        <div class="cl-count" id="clientCount"></div>
+        <div id="clientResults" class="client-results"></div>
+      </section>
+
+      <aside class="card cl-detail" id="clientDetail" aria-live="polite"></aside>
+    </div>
 
   </div>
 </main>
