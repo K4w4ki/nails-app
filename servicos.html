@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/servicos.css">
 </head>
 <body>
 
@@ -44,8 +45,122 @@
     </div>
   </section>
 
-  <section class="section">
+  <!-- ===== CONHEÇA OS PROCEDIMENTOS ===== -->
+  <section class="section" id="procedimentos">
     <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Conheça os procedimentos</span>
+          <h2>Detalhes de cada procedimento</h2>
+          <p class="lead">Cuidado, técnica e beleza em cada detalhe.</p>
+        </div>
+      </div>
+
+      <div class="proc-list">
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">01</span>
+            <img src="assets/procedimentos/esmaltacao-tradicional.jpg" alt="Esmaltação tradicional nas mãos" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Mãos</span>
+            <h3>Esmaltação tradicional</h3>
+            <p>Cuidado completo das unhas naturais, com preparação, cuticulagem e aplicação de esmalte convencional. Ideal para quem gosta de variar as cores e remover o esmalte em casa com facilidade.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">02</span>
+            <img src="assets/procedimentos/esmaltacao-gel.jpg" alt="Esmaltação em gel nas mãos" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Mãos</span>
+            <h3>Esmaltação em gel</h3>
+            <p>Aplicação de esmalte em gel sobre as unhas naturais, com secagem em cabine. Proporciona brilho intenso, acabamento uniforme e maior durabilidade do que a esmaltação tradicional.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">03</span>
+            <img src="assets/procedimentos/banho-de-gel.jpg" alt="Banho de gel" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Mãos</span>
+            <h3>Banho de gel</h3>
+            <p>Camada de gel aplicada sobre a unha natural para dar mais resistência e ajudar a evitar quebras. Mantém o comprimento natural e oferece um acabamento delicado e duradouro.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">04</span>
+            <img src="assets/procedimentos/alongamento-gel.jpg" alt="Alongamento em gel" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Mãos</span>
+            <h3>Alongamento em gel</h3>
+            <p>Extensão feita com gel para aumentar e modelar o comprimento das unhas. A técnica permite escolher formato e tamanho, com resultado resistente e aparência natural.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">05</span>
+            <img src="assets/procedimentos/pe-tradicional.jpg" alt="Pé tradicional" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Pés</span>
+            <h3>Pé tradicional</h3>
+            <p>Cuidado das unhas dos pés com corte, lixamento, cuticulagem e esmaltação convencional. Um procedimento completo para manter os pés bem cuidados e as unhas com acabamento delicado.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+        <article class="proc reveal">
+          <div class="proc-media">
+            <span class="proc-num">06</span>
+            <img src="assets/procedimentos/pe-gel.jpg" alt="Esmaltação em gel nos pés" loading="lazy" onerror="this.remove()">
+          </div>
+          <div class="proc-body">
+            <span class="proc-tag">Pés</span>
+            <h3>Pé em gel</h3>
+            <p>Esmaltação em gel nas unhas dos pés, finalizada em cabine. Entrega brilho prolongado, secagem imediata e maior resistência a lascas no dia a dia.</p>
+            <a class="proc-link" href="agendamento.html">Agendar este serviço <span class="arrow">→</span></a>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="proc-extra reveal">
+        <div>
+          <strong>Também disponíveis</strong>
+          <p>Consulte os valores adicionais de decoração.</p>
+        </div>
+        <ul>
+          <li>Pé e mão</li>
+          <li>Manutenção</li>
+          <li>Decorações</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VALORES E AGENDAMENTO (grade dinâmica, vem do Firestore) ===== -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Valores</span>
+          <h2>Escolha e agende</h2>
+        </div>
+      </div>
       <div class="grid grid-3" id="servicesGrid" aria-busy="true"></div>
     </div>
   </section>
