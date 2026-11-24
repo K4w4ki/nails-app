@@ -3,6 +3,10 @@
    Usa as variáveis do styles.css (--ink, --line, --soft, --r-lg…)
    ========================================================= */
 
+/* Topo da página */
+.servicos-hero{padding-top:clamp(48px,6vw,72px);padding-bottom:0}
+.proc-section{padding-top:clamp(40px,5vw,64px)}
+
 .proc-list{display:flex;flex-direction:column;gap:clamp(18px,2.4vw,28px)}
 
 .proc{
