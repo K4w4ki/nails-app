@@ -61,27 +61,30 @@
         <article class="card mt-6 b-date">
           <h3>Escolha a data e o horário</h3>
 
-          <!-- Calendário Mensal -->
-          <div class="custom-calendar mt-4">
-            <div class="cal-header">
-              <button type="button" id="prevMonth" class="cal-nav">&#8249;</button>
-              <div class="cal-title">
-                <select id="calMonth" aria-label="Selecionar mês"></select>
-                <select id="calYear" aria-label="Selecionar ano"></select>
+          <div class="date-layout">
+            <!-- Calendário mensal -->
+            <div class="custom-calendar">
+              <div class="cal-header">
+                <button type="button" id="prevMonth" class="cal-nav" aria-label="Mês anterior">&#8249;</button>
+                <div class="cal-title">
+                  <select id="calMonth" aria-label="Selecionar mês"></select>
+                  <select id="calYear" aria-label="Selecionar ano"></select>
+                </div>
+                <button type="button" id="nextMonth" class="cal-nav" aria-label="Próximo mês">&#8250;</button>
               </div>
-              <button type="button" id="nextMonth" class="cal-nav">&#8250;</button>
+              <div class="cal-weekdays">
+                <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+              </div>
+              <div class="cal-grid" id="calendarGrid"></div>
             </div>
-            <div class="cal-weekdays">
-              <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+
+            <!-- Horários do dia escolhido -->
+            <div class="slots-panel">
+              <h3>Horários disponíveis</h3>
+              <p class="lead" id="chosenDate"></p>
+              <div class="slots" id="slots"></div>
             </div>
-            <div class="cal-grid" id="calendarGrid"></div>
           </div>
-
-          <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
-
-          <h3>Horários disponíveis</h3>
-          <p class="lead" id="chosenDate" style="font-size:13px;margin:6px 0 12px"></p>
-          <div class="slots" id="slots"></div>
         </article>
 
         <article class="card mt-6 b-data">
