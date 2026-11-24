@@ -101,12 +101,30 @@
           <h3>Pagamento do sinal</h3>
           <p class="lead" style="font-size:13px">O sinal de <b>R$ 30,00</b> garante a reserva do seu horário. Após realizar o pagamento, clique em <em>Já realizei o pagamento</em> — Carol confirmará o agendamento em seguida.</p>
           <div class="pix-box mt-4">
-            <div class="pix-qr" id="pixQr">QR Code PIX</div>
-            <div>
-              <div class="eyebrow" style="justify-content:center;color:var(--muted)">Chave PIX</div>
-              <div class="pix-key" id="pixKey" style="margin-top:8px">—</div>
+            <div class="pix-qr-wrap">
+              <div class="pix-qr" id="pixQr">
+                <img src="assets/qr-pix.png" alt="QR Code PIX para pagamento do sinal" width="377" height="377" onerror="this.style.display='none';this.parentNode.classList.add('missing')">
+              </div>
+              <p class="pix-qr-hint">No app do seu banco, escolha <b>Pix</b> e depois <b>Ler QR Code</b>.</p>
             </div>
-            <button class="tiny" id="copyPix">Copiar chave PIX</button>
+            <div class="pix-info">
+              <div class="pix-line">
+                <span class="pix-label">Favorecida</span>
+                <strong id="pixFavorecida">—</strong>
+              </div>
+              <div class="pix-line">
+                <span class="pix-label">Chave PIX (celular)</span>
+                <div class="pix-key" id="pixKey">—</div>
+              </div>
+              <div class="pix-line">
+                <span class="pix-label">PIX copia e cola</span>
+                <div class="pix-code" id="pixCode" tabindex="0">—</div>
+              </div>
+              <div class="pix-actions">
+                <button type="button" class="tiny go" id="copyPix">Copiar código PIX</button>
+                <button type="button" class="tiny" id="copyKey">Copiar só a chave</button>
+              </div>
+            </div>
           </div>
           <button id="paidPix" class="btn btn-primary btn-block mt-4" disabled>Já realizei o pagamento</button>
           <p class="lead" style="font-size:12px;margin-top:12px" id="pixHint">Envie a solicitação de agendamento para liberar esta etapa do pagamento.</p>
