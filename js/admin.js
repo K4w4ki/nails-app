@@ -295,10 +295,12 @@ async function renderAdminAppointments() {
   const r = document.getElementById('adminAppointments');
 
   try {
-    let q = db.collection('agendamentos').orderBy('criadoEm', 'desc');
+    // Sem orderBy na consulta: filtrar por status + ordenar por criadoEm exigiria um índice composto no Firestore.
+    let q = db.collection('agendamentos');
     if (statusF !== 'all') q = q.where('status', '==', statusF);
     const snap = await q.get();
-    let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const ts = a => (a.criadoEm && a.criadoEm.toMillis) ? a.criadoEm.toMillis() : 0;
+    let list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((x, y) => ts(y) - ts(x));
 
     if (dateF && dateF !== 'all') list = list.filter(a => a.data === dateF);
     if (!list.length) { r.innerHTML = '<div class="empty">Nenhuma solicitação encontrada.</div>'; return; }
