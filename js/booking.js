@@ -239,7 +239,7 @@ async function submitAppointment() {
     });
 
     bookingState.appointmentId = ref.id;
-    toast('Solicitação enviada! Agora pague o sinal de R$ 30.');
+    toast('Solicitação enviada! Se for sua primeira vez, pague o sinal de R$ 30.');
     $el('pixHint').textContent = 'Pagamento liberado. Envie o comprovante pelo WhatsApp após pagar.';
     $el('paidPix').disabled = false;
     $el('statusNotice').innerHTML = 'Solicitação <b>pendente</b>. Após o sinal, a Carol confirma.';
