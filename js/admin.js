@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('adminLogout').addEventListener('click', adminLogout);
   document.getElementById('statusFilter').addEventListener('change', renderAdminAppointments);
   document.getElementById('dateFilter').addEventListener('change', renderAdminAppointments);
-  document.getElementById('addGal').addEventListener('click', addGaleria);
 
   auth.onAuthStateChanged(async user => {
     if (user) {
@@ -262,7 +261,6 @@ async function renderAllAdmin() {
   await renderAdminAppointments();
   await renderAdminServices();
   await renderRevenue();
-  await renderAdminGaleria();
 }
 
 async function renderStats() {
@@ -432,47 +430,4 @@ async function renderRevenue() {
     document.getElementById('completedCount').textContent = snap.size;
     document.getElementById('revenue').textContent = money(total);
   } catch(e) { console.error(e); }
-}
-
-async function renderAdminGaleria() {
-  const r = document.getElementById('adminGaleria');
-  try {
-    const snap = await db.collection('galeria').orderBy('ordem').get();
-    if (snap.empty) { r.innerHTML = '<div class="empty" style="font-size:12px;padding:10px">Nenhuma foto cadastrada.</div>'; return; }
-    r.innerHTML = '';
-    snap.docs.forEach(doc => {
-      const g = { id: doc.id, ...doc.data() };
-      const row = document.createElement('div'); row.className = 'admin-service';
-      row.innerHTML = `
-        <img src="${esc(g.url)}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px">
-        <span style="flex:1;font-size:12px;word-break:break-all">${esc(g.alt || g.url)}</span>
-        <button class="tiny danger">✕</button>`;
-      row.querySelector('button').addEventListener('click', async () => {
-        if (confirm('Remover esta foto?')) {
-          try {
-            await db.collection('galeria').doc(g.id).delete();
-            renderAdminGaleria();
-            toast('Foto removida.');
-          } catch(e) { console.error(e); toast('Erro ao remover foto.'); }
-        }
-      });
-      r.appendChild(row);
-    });
-  } catch(e) { console.error(e); }
-}
-
-async function addGaleria() {
-  const url = document.getElementById('galUrl').value.trim();
-  const alt = document.getElementById('galAlt').value.trim();
-  if (!url) return toast('Informe a URL da imagem.');
-  if (!validHttpsUrl(url)) return toast('Informe um endereço válido, começando com https://');
-  if (alt.length > 120) return toast('A descrição pode ter até 120 caracteres.');
-
-  try {
-    const snap = await db.collection('galeria').orderBy('ordem', 'desc').limit(1).get();
-    const ordem = snap.empty ? 1 : (+snap.docs[0].data().ordem || 0) + 1;
-    await db.collection('galeria').add({ url, alt, ordem });
-    document.getElementById('galUrl').value = ''; document.getElementById('galAlt').value = '';
-    renderAdminGaleria(); toast('Foto adicionada.');
-  } catch(e) { console.error(e); toast('Erro ao adicionar foto.'); }
 }
