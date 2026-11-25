@@ -1301,3 +1301,60 @@ main.page-enter {
   .b-date .cal-day{height:40px}
   .b-date .slots{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+/* =========================================================
+   ETAPA 3 DO AGENDAMENTO — "Seus dados"
+   ========================================================= */
+.b-data .data-head{display:grid;gap:6px}
+.b-data .data-head .lead{font-size:13px;margin:0}
+.b-data .field-row{margin-top:20px;gap:18px;align-items:start}
+.b-data .field{margin-bottom:0;gap:8px;align-content:start}
+
+.b-data .input-wrap{position:relative}
+.b-data .input-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;transition:color .2s var(--ease)}
+.b-data .input-wrap input{padding-left:44px}
+.b-data .input-wrap:focus-within .input-icon{color:var(--ink)}
+.b-data .field input.invalid ~ .input-icon,
+.b-data .input-wrap:has(input.invalid) .input-icon{color:var(--bad)}
+
+.b-data .field-hint{font-size:12px;line-height:1.45;color:var(--muted)}
+.b-data .field:has(.field-error:not([hidden])) .field-hint{display:none}
+.b-data .field-error{display:flex;align-items:center;gap:6px;font-weight:500}
+.b-data .field-error:not([hidden])::before{content:"!";display:grid;place-items:center;flex:none;width:15px;height:15px;border-radius:50%;background:var(--bad);color:#fff;font-size:10px;font-weight:700}
+
+/* Autorização (checkbox) */
+.b-data .consent{
+  display:flex;align-items:center;gap:14px;cursor:pointer;
+  margin-top:22px;padding:15px 18px;
+  background:var(--mist);border:1px solid var(--line);border-radius:var(--r-sm);
+  font-size:13px;line-height:1.5;color:var(--ink-soft);
+  transition:border-color .2s var(--ease),background .2s var(--ease);
+}
+.b-data .consent:hover{border-color:var(--line-2)}
+.b-data .consent input{
+  -webkit-appearance:none;appearance:none;flex:none;
+  width:22px;height:22px;min-height:0;padding:0;margin:0;
+  display:grid;place-content:center;cursor:pointer;
+  background:var(--white);border:1.5px solid var(--line-2);border-radius:7px;
+  transition:background .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease);
+}
+.b-data .consent input::before{
+  content:"";width:12px;height:12px;transform:scale(0);transition:transform .15s var(--ease);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.b-data .consent input:checked{background:var(--ink);border-color:var(--ink)}
+.b-data .consent input:checked::before{transform:scale(1)}
+.b-data .consent input:focus-visible{outline:none;box-shadow:0 0 0 4px #6b6b6b26}
+.b-data .consent:has(input:checked){background:var(--white);border-color:var(--ink)}
+.b-data .consent:has(input.invalid){border-color:var(--bad);background:#9651540d}
+.b-data .consent input.invalid{border-color:var(--bad)}
+.b-data .consent-error{margin-top:8px}
+
+@media(max-width:640px){
+  .b-data .field-row{gap:16px;margin-top:16px}
+  .b-data .consent{padding:14px;gap:12px;align-items:flex-start}
+  .b-data .consent input{margin-top:1px}
+}
+@media(prefers-reduced-motion:reduce){
+  .b-data .consent,.b-data .consent input,.b-data .consent input::before,.b-data .input-icon{transition:none}
+}
