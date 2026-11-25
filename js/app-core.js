@@ -21,17 +21,29 @@ function br(x,long=false){
   return new Date(x+'T12:00:00').toLocaleDateString('pt-BR',
     long?{weekday:'long',day:'2-digit',month:'long'}:{day:'2-digit',month:'2-digit',year:'numeric'});
 }
-function formatPhoneDisplay(p){
-  p=digits(p);
-  return p.length>10
-    ? p.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3')
-    : p.replace(/(\d{2})(\d{0,4})(\d{0,4})/,'($1) $2-$3');
+/* Formata só com os separadores que já têm dígito depois (evita "-" preso ao apagar) */
+function formatPhone(p){
+  p=digits(p).slice(0,11);
+  if(!p) return '';
+  if(p.length<=2) return '('+p;
+  if(p.length<=6) return `(${p.slice(0,2)}) ${p.slice(2)}`;
+  if(p.length<=10) return `(${p.slice(0,2)}) ${p.slice(2,6)}-${p.slice(6)}`;
+  return `(${p.slice(0,2)}) ${p.slice(2,7)}-${p.slice(7)}`;
 }
+function formatPhoneDisplay(p){ return formatPhone(p); }
 function formatPhoneInput(e){
-  const n=digits(e.target.value).slice(0,11);
-  e.target.value = n.length>10
-    ? n.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3')
-    : n.replace(/(\d{2})(\d{0,4})(\d{0,4})/,'($1) $2-$3');
+  const el=e.target;
+  const pos=el.selectionStart ?? el.value.length;
+  const before=digits(el.value.slice(0,pos)).length; // dígitos antes do cursor
+  el.value=formatPhone(el.value);
+  // devolve o cursor para depois do mesmo dígito
+  let newPos=0,count=0;
+  if(before>0){
+    for(;newPos<el.value.length;newPos++){
+      if(/\d/.test(el.value[newPos]) && ++count===before){ newPos++; break; }
+    }
+  }
+  el.setSelectionRange(newPos,newPos);
 }
 function waLink(phone,text){
   let p=digits(phone); if(p.length===10||p.length===11) p='55'+p;
