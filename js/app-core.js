@@ -173,6 +173,15 @@ function initPageTransitions() {
     });
   }
 
+  // Voltar/avançar no navegador restaura a página do cache (bfcache) exatamente como estava,
+  // com a tela de transição ainda ligada e sem disparar 'load'. Aqui a gente desliga.
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    sessionStorage.removeItem('internal_nav');
+    transitionEl.classList.remove('active');
+    transitionEl.classList.add('fade-out');
+  });
+
   document.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
