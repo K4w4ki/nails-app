@@ -501,3 +501,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('pagehide', () => { if (unsub) unsub(); });
+
+// pra gerar o grafico no excel
+
+/* =========================================================
+   Ponte para o módulo de exportação (dashboard-export.js)
+   ========================================================= */
+window.DashState = {
+  get all()   { return all; },
+  get view()  { return view; },
+  get ready() { return ready; }
+};
+window.DashUtils = {
+  aggregate, sumWeek, weekRangeOffset, ymKey, shift,
+  MESES, MESES_CURTO, STATUS_META
+};

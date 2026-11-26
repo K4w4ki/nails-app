@@ -55,6 +55,10 @@
           <button type="button" id="mNext" aria-label="Próximo mês"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
         </div>
         <button type="button" class="btn btn-ghost" id="mToday">Mês atual</button>
+        <button type="button" class="btn btn-primary" id="mExport">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+  <span class="exp-label">Exportar Excel</span>
+</button>
         <a class="btn btn-ghost" href="admin.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Painel</a>
       </div>
     </div>
@@ -143,6 +147,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/app-core.js"></script>
+<script src="js/dashboard-export.js" defer></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>
