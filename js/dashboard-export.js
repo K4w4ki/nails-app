@@ -1,11 +1,7 @@
 'use strict';
 /* =========================================================
    EXPORTAR DASHBOARD PARA EXCEL — Área da Carol
-   Depende de:
-     - dashboard.js  → window.DashState, window.DashUtils
-     - app-core.js   → br, keyDate, formatPhoneDisplay, toast
-   A biblioteca ExcelJS só é baixada no primeiro clique.
-   Gera os mesmos números que estão na tela, para o mês selecionado.
+   Inclui IMAGENS dos gráficos (SVG -> PNG) e tabelas detalhadas.
    ========================================================= */
 (function () {
   const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
@@ -37,7 +33,6 @@
   const MES_T = { none: 'sem mês anterior para comparar', same: 'igual ao mês anterior', vs: 'vs mês anterior' };
   const SEM_T = { none: 'sem semana anterior para comparar', same: 'igual à semana anterior', vs: 'vs semana anterior' };
 
-  /* Mesma regra do aggregate() para o status exibido */
   function statusKey(a) {
     let sk = a.status;
     if (sk === 'cancelado') {
@@ -49,9 +44,51 @@
   }
 
   /* =======================================================
-     Monta a planilha. ctx = { all, view, A, today, now }
+     Helper: Transforma um SVG da tela em Imagem Base64
      ======================================================= */
-  function buildWorkbook(ExcelJS, ctx) {
+  async function svgToPngBase64(containerId) {
+    return new Promise((resolve) => {
+      const container = document.getElementById(containerId);
+      if (!container) return resolve(null);
+      const svg = container.querySelector('svg');
+      if (!svg) return resolve(null);
+
+      const clone = svg.cloneNode(true);
+      // Define tamanhos explícitos para não perder qualidade
+      const w = svg.clientWidth || 800;
+      const h = svg.clientHeight || 300;
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      
+      // Fundo branco para o Excel não ficar transparente
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('width', '100%');
+      rect.setAttribute('height', '100%');
+      rect.setAttribute('fill', '#ffffff');
+      clone.insertBefore(rect, clone.firstChild);
+
+      const svgString = new XMLSerializer().serializeToString(clone);
+      const svg64 = btoa(unescape(encodeURIComponent(svgString)));
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // Resolução 2x para ficar nítido
+        canvas.width = w * 2;
+        canvas.height = h * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve({ base64: canvas.toDataURL('image/png'), width: w, height: h });
+      };
+      img.onerror = () => resolve(null);
+      img.src = 'data:image/svg+xml;base64,' + svg64;
+    });
+  }
+
+  /* =======================================================
+     Monta a planilha.
+     ======================================================= */
+  async function buildWorkbook(ExcelJS, ctx, imgs) {
     const { all, view, A, today, now } = ctx;
     const U = window.DashUtils;
     const { MESES, STATUS_META, ymKey, shift, sumWeek, weekRangeOffset } = U;
@@ -105,7 +142,6 @@
       }
     };
 
-    /* Linha de tabela. kind: head | body | total | hero. span3: 3º valor ocupa D:E */
     const tr = (vals, o = {}) => {
       const kind = o.kind || 'body', n = o.span3 ? 4 : vals.length;
       const bg = kind === 'head' || kind === 'hero' ? X.ink : kind === 'total' ? X.mist : null;
@@ -132,13 +168,9 @@
       r++;
     };
     const bars = (ref, color) => ws.addConditionalFormatting({
-      ref, rules: [{
-        type: 'dataBar', priority: 1,
-        cfvo: [{ type: 'num', value: 0 }, { type: 'max' }],
-        color: { argb: color }
-      }]
+      ref, rules: [{ type: 'dataBar', priority: 1, cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: color } }]
     });
-    const gap = () => { r++; };
+    const gap = () => { r += 2; };
 
     /* --- Resumo da semana --- */
     const wCur = weekRangeOffset(0), wPrev = weekRangeOffset(-1);
@@ -164,8 +196,29 @@
     tr(['Cancelamentos (Carol)', A.cancelCarol, `${A.status.recusado} ${plural(A.status.recusado, 'recusa', 'recusas')} à parte`], { span3: true, fmts: [null, '0'], boldFirst: true });
     gap();
 
-    /* --- Situação das solicitações --- */
-    section('Agenda', 'Situação das solicitações', 'Todas as solicitações do mês, por status');
+    /* --- Inserir Imagem do Gráfico 1: Faturamento por dia --- */
+    if (imgs.cDaily) {
+      section('Receita', 'Faturamento por dia', 'Receita dos atendimentos concluídos, dia a dia e acumulada no mês');
+      const imgId = wb.addImage({ base64: imgs.cDaily.base64, extension: 'png' });
+      ws.addImage(imgId, {
+        tl: { col: 1, row: r - 1 },
+        ext: { width: 600, height: 300 }
+      });
+      r += 16; // Pula as linhas que a imagem está ocupando
+    }
+
+    /* --- Inserir Imagem do Gráfico 2: Rosca --- */
+    if (imgs.cStatus) {
+      section('Agenda', 'Situação das solicitações', 'Todas as solicitações do mês, por status');
+      const imgId = wb.addImage({ base64: imgs.cStatus.base64, extension: 'png' });
+      ws.addImage(imgId, {
+        tl: { col: 1, row: r - 1 },
+        ext: { width: 350, height: 300 }
+      });
+      r += 16;
+    }
+
+    /* --- Situação das solicitações (Tabela) --- */
     tr(['Status', 'Solicitações', '% do mês'], { kind: 'head' });
     const st0 = r;
     STATUS_META.forEach(s => {
@@ -176,39 +229,38 @@
     tr(['Total do mês', A.total, A.total ? 1 : 0], { kind: 'total', fmts: [null, '0', '0%'] });
     gap();
 
-    /* --- Serviços mais realizados --- */
-    const svc = Object.entries(A.services).sort((a, b) => b[1].n - a[1].n || b[1].rev - a[1].rev);
-    section('Catálogo', 'Serviços mais realizados', 'Atendimentos concluídos no mês, do mais ao menos realizado');
-    tr(['Serviço', 'Atendimentos', 'Faturamento'], { kind: 'head' });
-    if (svc.length) {
-      const sv0 = r;
-      svc.forEach(([name, v], i) => tr([name, v.n, v.rev], { fmts: [null, '0', MONEY], boldFirst: i === 0 }));
-      bars(`C${sv0}:C${r - 1}`, argb('#b08a4a'));
-    } else {
-      tr(['Nenhum serviço concluído neste mês', '', ''], { muted: true });
+    /* --- Inserir Imagem do Gráfico 3: Tendência --- */
+    if (imgs.cTrend) {
+      section('Tendência', 'Últimos 6 meses', 'Faturamento e atendimentos, mês a mês');
+      const imgId = wb.addImage({ base64: imgs.cTrend.base64, extension: 'png' });
+      ws.addImage(imgId, {
+        tl: { col: 1, row: r - 1 },
+        ext: { width: 600, height: 300 }
+      });
+      r += 16;
     }
-    gap();
 
-    /* --- Últimos 6 meses --- */
-    const months = [5, 4, 3, 2, 1, 0].map(i => shift(view, -i));
-    const series = months.map(x => A.monthly[ymKey(x.y, x.m)] || { rev: 0, n: 0 });
-    section('Tendência', 'Últimos 6 meses', 'Faturamento e atendimentos concluídos, mês a mês');
-    tr(['Mês', 'Faturamento', 'Atendimentos'], { kind: 'head' });
-    const t0 = r;
-    months.forEach((x, i) => tr([`${MESES[x.m]} ${x.y}`, series[i].rev, series[i].n], { fmts: [null, MONEY, '0'], boldFirst: i === 5 }));
-    bars(`C${t0}:C${r - 1}`, 'FFB9B9B9');
-    gap();
+    /* --- Inserir Imagem do Gráfico 4: Serviços --- */
+    if (imgs.cServices) {
+      section('Catálogo', 'Serviços mais realizados', 'Atendimentos concluídos no mês');
+      const imgId = wb.addImage({ base64: imgs.cServices.base64, extension: 'png' });
+      ws.addImage(imgId, {
+        tl: { col: 1, row: r - 1 },
+        ext: { width: 600, height: 300 }
+      });
+      r += 16;
+    }
 
-    /* --- Ocorrências por semana --- */
-    const nW = A.dim > 28 ? 5 : 4;
-    const wk = ['1–7', '8–14', '15–21', '22–28', `29–${A.dim}`].slice(0, nW);
-    section('Ocorrências', 'Reagendamentos e cancelamentos', 'Por semana do mês · cancelamentos feitos pela Carol');
-    tr(['Semana (dias)', 'Reagendamentos', 'Cancelamentos (Carol)'], { kind: 'head' });
-    const o0 = r;
-    wk.forEach((l, i) => tr([`Dias ${l}`, A.weeks.resched[i], A.weeks.cancel[i]], { fmts: [null, '0', '0'] }));
-    bars(`C${o0}:C${r - 1}`, argb('#8b7fa3'));
-    bars(`D${o0}:D${r - 1}`, argb('#7a3d40'));
-    tr(['Total', A.resched, A.cancelCarol], { kind: 'total', fmts: [null, '0', '0'] });
+    /* --- Inserir Imagem do Gráfico 5: Ocorrências --- */
+    if (imgs.cOcc) {
+      section('Ocorrências', 'Reagendamentos e cancelamentos', 'Por semana do mês');
+      const imgId = wb.addImage({ base64: imgs.cOcc.base64, extension: 'png' });
+      ws.addImage(imgId, {
+        tl: { col: 1, row: r - 1 },
+        ext: { width: 600, height: 300 }
+      });
+      r += 16;
+    }
 
     /* ---------- Aba 2: Faturamento por dia ---------- */
     const wd = wb.addWorksheet('Faturamento por dia', {
@@ -247,10 +299,7 @@
       wd.getRow(row).height = 20;
     });
     const last = 4 + A.dim, tot = last + 1;
-    wd.addConditionalFormatting({
-      ref: `D5:D${last}`,
-      rules: [{ type: 'dataBar', priority: 1, cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: argb('#b08a4a') } }]
-    });
+    wd.addConditionalFormatting({ ref: `D5:D${last}`, rules: [{ type: 'dataBar', priority: 1, cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: argb('#b08a4a') } }] });
     [['Total do mês', null], ['', null], [{ formula: `SUM(D5:D${last})`, result: A.revenue }, MONEY], ['', null]].forEach(([val, fmt], j) => {
       const c = wd.getCell(tot, 2 + j);
       if (val !== '') c.value = val;
@@ -312,7 +361,7 @@
   }
 
   /* =======================================================
-     Navegador: carrega a biblioteca, monta e baixa o arquivo
+     Download e carregamento da Lib
      ======================================================= */
   let libPromise = null;
   function loadExcelJS() {
@@ -332,29 +381,38 @@
   async function exportDashboard() {
     const btn = document.getElementById('mExport');
     if (!btn || btn.disabled) return;
-
-    /* Estado e utils vêm do dashboard.js */
-    if (!window.DashState || !window.DashUtils) {
-      toast('O dashboard ainda não terminou de carregar. Tente de novo em instantes.');
-      return;
-    }
-    if (!window.DashState.ready) { toast('Aguarde os dados carregarem para exportar.'); return; }
+    if (!window.DashState || !window.DashUtils) return;
+    if (!window.DashState.ready) { toast('Aguarde os dados carregarem.'); return; }
 
     const U = window.DashUtils;
     const label = btn.querySelector('.exp-label'), old = label.textContent;
-    btn.disabled = true; label.textContent = 'Gerando…';
+    btn.disabled = true; label.textContent = 'Preparando...';
 
     try {
+      // 1. Carrega a Lib
       const ExcelJS = await loadExcelJS();
+      
+      // 2. Transforma os SVGs da tela em Imagens
+      label.textContent = 'Desenhando...';
+      const imgs = {
+        cDaily: await svgToPngBase64('cDaily'),
+        cStatus: await svgToPngBase64('cStatus'),
+        cTrend: await svgToPngBase64('cTrend'),
+        cServices: await svgToPngBase64('cServices'),
+        cOcc: await svgToPngBase64('cOcc')
+      };
+
+      // 3. Monta o arquivo
+      label.textContent = 'Gerando...';
       const now = new Date(), today = keyDate(now);
-      /* Congela o estado do momento do clique */
       const snapshotAll  = window.DashState.all.slice();
       const snapshotView = { ...window.DashState.view };
       const A = U.aggregate(snapshotAll, snapshotView.y, snapshotView.m, today);
 
-      const wb = buildWorkbook(ExcelJS, { all: snapshotAll, view: snapshotView, A, today, now });
+      const wb = await buildWorkbook(ExcelJS, { all: snapshotAll, view: snapshotView, A, today, now }, imgs);
       const buf = await wb.xlsx.writeBuffer();
 
+      // 4. Baixa
       const url = URL.createObjectURL(new Blob([buf], { type: MIME }));
       const a = document.createElement('a');
       a.href = url;
