@@ -48,6 +48,109 @@
     return sk;
   }
 
+  /* Gráficos visuais em PNG: ExcelJS não cria gráficos nativos.\n     As tabelas de origem permanecem editáveis nas outras abas. */
+  function chartCanvas(title, subtitle) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000; canvas.height = 520;
+    const c = canvas.getContext('2d');
+    c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, canvas.width, canvas.height);
+    c.fillStyle = '#B08A4A'; c.fillRect(48, 42, 5, 52);
+    c.fillStyle = '#282828'; c.font = 'bold 30px Georgia'; c.fillText(title, 72, 68);
+    c.fillStyle = '#737373'; c.font = '18px Arial'; c.fillText(subtitle || '', 72, 101);
+    c.strokeStyle = '#DEDEDE'; c.lineWidth = 1; c.beginPath(); c.moveTo(48, 126); c.lineTo(952, 126); c.stroke();
+    return { canvas, c };
+  }
+  function addCanvasChart(wb, ws, title, subtitle, draw, col, row) {
+    const { canvas, c } = chartCanvas(title, subtitle);
+    draw(c, canvas);
+    const id = wb.addImage({ base64: canvas.toDataURL('image/png').split(',')[1], extension: 'png' });
+    ws.addImage(id, { tl: { col, row }, ext: { width: 440, height: 229 } });
+  }
+  const moneyLabel = v => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  function drawBars(c, labels, values, color, suffix = '') {
+    const left = 90, top = 165, width = 820, height = 275;
+    const max = Math.max(1, ...values), step = width / Math.max(1, values.length);
+    c.font = '15px Arial'; c.textAlign = 'right'; c.fillStyle = '#737373';
+    for (let i = 0; i <= 4; i++) {
+      const y = top + height - height * i / 4;
+      c.strokeStyle = '#ECECEB'; c.beginPath(); c.moveTo(left, y); c.lineTo(left + width, y); c.stroke();
+      c.fillText(Math.round(max * i / 4).toLocaleString('pt-BR') + suffix, left - 12, y + 5);
+    }
+    values.forEach((v, i) => {
+      const bw = Math.max(4, step * .62), bh = height * v / max, x = left + i * step + (step - bw) / 2;
+      c.fillStyle = color; c.fillRect(x, top + height - bh, bw, bh);
+      if (labels.length <= 12 || i % Math.ceil(labels.length / 12) === 0 || i === labels.length - 1) {
+        c.fillStyle = '#737373'; c.textAlign = 'center'; c.font = '13px Arial';
+        c.fillText(labels[i], x + bw / 2, top + height + 25);
+      }
+    });
+  }
+  function addChartsSheet(wb, A, view, U) {
+    const { MESES, STATUS_META, ymKey, shift } = U;
+    const ws = wb.addWorksheet('Gráficos', { views: [{ showGridLines: false }], properties: { tabColor: { argb: X.gold } } });
+    ws.columns = Array.from({ length: 10 }, () => ({ width: 12 }));
+    ws.mergeCells('B1:J1');
+    Object.assign(ws.getCell('B1'), { value: `Painel visual — ${MESES[view.m]} ${view.y}`, font: { name: SERIF, size: 20, bold: true, color: { argb: X.ink } } });
+    ws.mergeCells('B2:J2');
+    Object.assign(ws.getCell('B2'), { value: 'Gráficos gerados a partir do mesmo recorte de dados do dashboard no momento da exportação.', font: { name: FONT, size: 10, italic: true, color: { argb: X.muted } } });
+
+    addCanvasChart(wb, ws, 'Faturamento por dia', 'Receita diária e acumulada de atendimentos concluídos', (c) => {
+      drawBars(c, A.daily.map((_, i) => String(i + 1)), A.daily, '#3D3D3D', '');
+      const left=90, top=165, width=820, height=275, cumulative=[]; let run=0;
+      const current = view.y === new Date().getFullYear() && view.m === new Date().getMonth();
+      const limit = current ? new Date().getDate() : A.dim;
+      for(let i=0;i<A.dim;i++){ run += A.daily[i]; cumulative.push(i < limit ? run : null); }
+      const max=Math.max(1,...cumulative.filter(v=>v!==null));
+      c.strokeStyle='#B08A4A'; c.lineWidth=4; c.beginPath(); let started=false;
+      cumulative.forEach((v,i)=>{ if(v===null)return; const x=left+(i+.5)*(width/A.dim), y=top+height-height*v/max; if(!started){c.moveTo(x,y);started=true;}else c.lineTo(x,y); }); c.stroke();
+      c.textAlign='left'; c.font='15px Arial'; c.fillStyle='#3D3D3D'; c.fillText('■ Faturamento diário', 680, 151); c.fillStyle='#B08A4A'; c.fillText('━ Acumulado', 825, 151);
+    }, 1, 3);
+
+    addCanvasChart(wb, ws, 'Situação das solicitações', 'Distribuição por status no mês selecionado', (c) => {
+      const vals = STATUS_META.map(s => A.status[s.k]), total = vals.reduce((a,b) => a+b, 0);
+      const cx = 315, cy = 305, radius = 135; let angle = -Math.PI / 2;
+      vals.forEach((v, i) => {
+        if (!v || !total) return;
+        const end = angle + v / total * Math.PI * 2;
+        c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, radius, angle, end); c.closePath(); c.fillStyle = STATUS_META[i].color; c.fill(); angle = end;
+      });
+      c.beginPath(); c.arc(cx, cy, 78, 0, Math.PI * 2); c.fillStyle = '#FFFFFF'; c.fill();
+      c.fillStyle = '#282828'; c.font = 'bold 34px Arial'; c.textAlign = 'center'; c.fillText(String(total), cx, cy + 10);
+      c.font = '14px Arial'; c.fillStyle = '#737373'; c.fillText('solicitações', cx, cy + 34);
+      STATUS_META.forEach((s, i) => {
+        const y = 178 + i * 35; c.fillStyle = s.color; c.fillRect(555, y - 13, 16, 16);
+        c.fillStyle = '#3D3D3D'; c.font = '15px Arial'; c.textAlign = 'left';
+        c.fillText(`${s.label} (${vals[i]})`, 582, y);
+      });
+    }, 6, 3);
+
+    const months = [5,4,3,2,1,0].map(i => shift(view, -i));
+    const series = months.map(x => A.monthly[ymKey(x.y, x.m)] || { rev: 0, n: 0 });
+    addCanvasChart(wb, ws, 'Tendência dos últimos 6 meses', 'Faturamento e atendimentos concluídos', (c) => {
+      drawBars(c, months.map(x => U.MESES_CURTO[x.m]), series.map(x => x.rev), '#3D3D3D');
+      const left=90, top=165, width=820, height=275, max=Math.max(1,...series.map(x=>x.n));
+      c.strokeStyle='#B08A4A'; c.lineWidth=5; c.beginPath();
+      series.forEach((v,i)=>{ const x=left+(i+.5)*(width/6), y=top+height-height*v.n/max; if(i===0)c.moveTo(x,y);else c.lineTo(x,y); }); c.stroke();
+      series.forEach((v,i)=>{ const x=left+(i+.5)*(width/6), y=top+height-height*v.n/max; c.beginPath();c.arc(x,y,7,0,Math.PI*2);c.fillStyle='#B08A4A';c.fill(); });
+      c.textAlign='left'; c.font='15px Arial'; c.fillStyle='#3D3D3D'; c.fillText('■ Faturamento', 690, 151); c.fillStyle='#B08A4A'; c.fillText('● Atendimentos', 815, 151);
+    }, 1, 15);
+
+    const services = Object.entries(A.services).sort((a,b)=>b[1].n-a[1].n||b[1].rev-a[1].rev).slice(0,6);
+    addCanvasChart(wb, ws, 'Serviços mais realizados', 'Atendimentos concluídos no mês · top 6', (c) => {
+      const max=Math.max(1,...services.map(x=>x[1].n)), x0=330, y0=165, barW=570, rowH=34;
+      services.forEach(([name,v],i)=>{ const y=y0+i*rowH; c.fillStyle='#737373';c.font='15px Arial';c.textAlign='right';c.fillText(name.length>30?name.slice(0,27)+'…':name,x0-14,y+18);c.fillStyle='#B08A4A';c.fillRect(x0,y,barW*v.n/max,22);c.fillStyle='#282828';c.textAlign='left';c.fillText(String(v.n),x0+barW*v.n/max+8,y+18); });
+      if (!services.length) { c.fillStyle='#737373';c.textAlign='center';c.font='20px Arial';c.fillText('Nenhum atendimento concluído no mês',500,300); }
+    }, 6, 15);
+
+    addCanvasChart(wb, ws, 'Ocorrências por semana', 'Reagendamentos e cancelamentos realizados pela Carol', (c) => {
+      const nW=A.dim>28?5:4, labels=['1–7','8–14','15–21','22–28',`29–${A.dim}`].slice(0,nW), left=105, top=170, width=800, height=260;
+      const max=Math.max(1,...A.weeks.resched.slice(0,nW),...A.weeks.cancel.slice(0,nW)), group=width/nW;
+      for(let i=0;i<=4;i++){const y=top+height-height*i/4;c.strokeStyle='#ECECEB';c.beginPath();c.moveTo(left,y);c.lineTo(left+width,y);c.stroke();}
+      labels.forEach((l,i)=>{const x=left+i*group+group/2,bw=Math.min(42,group*.25);const a=A.weeks.resched[i],b=A.weeks.cancel[i];c.fillStyle='#8B7FA3';c.fillRect(x-bw-3,top+height-height*a/max,bw,height*a/max);c.fillStyle='#7A3D40';c.fillRect(x+3,top+height-height*b/max,bw,height*b/max);c.fillStyle='#737373';c.font='15px Arial';c.textAlign='center';c.fillText(l,x,top+height+26);});
+      c.textAlign='left';c.font='15px Arial';c.fillStyle='#8B7FA3';c.fillText('■ Reagendamentos',680,151);c.fillStyle='#7A3D40';c.fillText('■ Cancelamentos (Carol)',820,151);
+    }, 1, 27);
+  }
+
   /* =======================================================
      Monta a planilha. ctx = { all, view, A, today, now }
      ======================================================= */
@@ -308,6 +411,7 @@
       wa.getRow(5).height = 28;
     }
 
+    addChartsSheet(wb, A, view, U);
     return wb;
   }
 
@@ -342,16 +446,16 @@
 
     const U = window.DashUtils;
     const label = btn.querySelector('.exp-label'), old = label.textContent;
-    btn.disabled = true; label.textContent = 'Gerando…';
+    btn.disabled = true; btn.setAttribute('aria-busy', 'true'); label.textContent = 'Gerando…';
 
     try {
-      const ExcelJS = await loadExcelJS();
+      /* Congela os dados e o mês exatamente no momento do clique,
+         inclusive enquanto a biblioteca do Excel é carregada. */
       const now = new Date(), today = keyDate(now);
-      /* Congela o estado do momento do clique */
-      const snapshotAll  = window.DashState.all.slice();
+      const snapshotAll = window.DashState.all.slice();
       const snapshotView = { ...window.DashState.view };
       const A = U.aggregate(snapshotAll, snapshotView.y, snapshotView.m, today);
-
+      const ExcelJS = await loadExcelJS();
       const wb = buildWorkbook(ExcelJS, { all: snapshotAll, view: snapshotView, A, today, now });
       const buf = await wb.xlsx.writeBuffer();
 
@@ -366,7 +470,7 @@
       console.error(e);
       toast('Não foi possível gerar a planilha. Verifique a conexão e tente de novo.');
     } finally {
-      btn.disabled = false; label.textContent = old;
+      btn.disabled = false; btn.removeAttribute('aria-busy'); label.textContent = old;
     }
   }
 
